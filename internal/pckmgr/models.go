@@ -1,7 +1,8 @@
 package pckmgr
 
+//  Создание архивов
 
-type PackageMeta struct {
+type PackageForCreate struct {
 	Name string
 	Ver string
 	Targets []Target
@@ -16,6 +17,17 @@ type TargetWithExclude struct {
 }
 
 type PackageDependency struct {
+	Name string
+	Ver string
+}
+
+//  Загрузка архивов
+
+type PackagesForUpdate struct {
+	Packages []PackageRequest
+}
+
+type PackageRequest struct {
 	Name string
 	Ver string
 }
