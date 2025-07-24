@@ -1,4 +1,4 @@
-package pckmgr
+package pkgmgr
 
 //  Создание архивов
 
@@ -9,9 +9,9 @@ type PackageForCreate struct {
  	Packages []PackageDependency
 }
 
-type Target any // Может быть строкой или типом TargetWithExclude
+type Target any // Может быть строкой или типом TargetExtended
 
-type TargetWithExclude struct {
+type TargetExtended struct {
 	Path string
 	Exclude string
 }
@@ -31,3 +31,6 @@ type PackageRequest struct {
 	Name string
 	Ver string
 }
+
+
+
