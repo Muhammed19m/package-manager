@@ -7,8 +7,16 @@ import (
 )
 
 func Test_CreatePackage(t *testing.T) {
+	sshCfg := SshConfig{
+		Host:         "",
+		User:         "",
+		Passwd:       "",
+		IdentityFile: "",
+	}
+
 	t.Run("Name должен быть валидным", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name:     "",
 			Ver:      "",
 			Targets:  []Target{},
@@ -19,7 +27,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("Ver должен быть валидным", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name:     "",
 			Ver:      "",
 			Targets:  []Target{},
@@ -30,7 +39,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("Targets не должен быть пустым", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name:     "",
 			Ver:      "",
 			Targets:  []Target{},
@@ -41,7 +51,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("успешная загрузка по шаблону", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name: "package-1",
 			Ver:  "1.0",
 			Targets: []Target{
@@ -56,7 +67,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("успешная загрузка по шаблону с исключением", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name: "package-1",
 			Ver:  "1.0",
 			Targets: []Target{
@@ -72,7 +84,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("успешная загрузка вместе с зависимостью", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name: "package-1",
 			Ver:  "1.0",
 			Targets: []Target{
@@ -89,7 +102,8 @@ func Test_CreatePackage(t *testing.T) {
 	})
 
 	t.Run("зависимость должна существовать", func(t *testing.T) {
-		err := CreatePackage(PackageForCreate{
+		err := CreatePackage(CreatePackageIn{
+			SshConfig: sshCfg,
 			Name: "package-1",
 			Ver:  "1.0",
 			Targets: []Target{
@@ -106,11 +120,19 @@ func Test_CreatePackage(t *testing.T) {
 	})
 }
 
-func CreatePackage(a PackageForCreate) error { return nil }
+func CreatePackage(a CreatePackageIn) error { return nil }
 
 func Test_UpdatePackages(t *testing.T) {
+	sshCfg := SshConfig{
+		Host:         "",
+		User:         "",
+		Passwd:       "",
+		IdentityFile: "",
+	}
+
 	t.Run("Packages не должно быть пустым", func(t *testing.T) {
-		err := UpdatePackages(PackagesForUpdate{
+		err := UpdatePackages(UpdatePackagesIn{
+			SshConfig: sshCfg,
 			Packages: []PackageRequest{},
 		})
 
@@ -119,16 +141,17 @@ func Test_UpdatePackages(t *testing.T) {
 
 	t.Run("Пакет успешно загружен и существет в директории", func(t *testing.T) {
 		expectedFile := "./funny1.png"
-		err := UpdatePackages(PackagesForUpdate{
+		err := UpdatePackages(UpdatePackagesIn{
+			SshConfig: sshCfg,
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
 			}},
 		})
-		
+
 		assert.FileExists(t, expectedFile)
 		assert.NoError(t, err)
 	})
 }
 
-func UpdatePackages(a PackagesForUpdate) error { return nil }
+func UpdatePackages(a UpdatePackagesIn) error { return nil }
