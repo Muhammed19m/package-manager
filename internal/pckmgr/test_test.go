@@ -101,3 +101,18 @@ func Test_CreatePackage(t *testing.T) {
 }
 
 func CreatePackage(a PackageForCreate) error{return nil}
+
+func Test_UpdatePackage(t *testing.T) {
+	t.Run("Name должен быть валидным", func(t *testing.T) {
+		err := UpdatePackage(PackagesForUpdate{
+		Name:     "",
+		Ver:      "",
+		Targets:  []Target{},
+		Packages: []PackageDependency{},
+		})
+
+		assert.Error(t, err)
+	})
+}
+
+func UpdatePackage(a PackagesForUpdate) error {return nil}
