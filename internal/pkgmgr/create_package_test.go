@@ -7,9 +7,12 @@ import (
 )
 
 func Test_CreatePackage(t *testing.T) {
+	// 1. создать тестконтейнер системы с запущенныи ssh
+	// 2. создать SshConfig к этому контейнеру
 	sshCfg := SshConfig{
 		Host:         "",
 		User:         "",
+		PackagesDir:  "",
 		Passwd:       "",
 		IdentityFile: "",
 	}
@@ -119,4 +122,3 @@ func Test_CreatePackage(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
-

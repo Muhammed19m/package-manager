@@ -41,9 +41,9 @@ type PackageRequest struct {
 // ssh Pebble
 // .ssh/config
 type SshConfig struct {
-	Host string
-	User string
-
+	Host         string
+	User         string
+	PackagesDir  string
 	Passwd       string
 	IdentityFile string
 }
