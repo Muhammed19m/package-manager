@@ -152,6 +152,48 @@ func Test_UpdatePackages(t *testing.T) {
 		assert.FileExists(t, expectedFile)
 		assert.NoError(t, err)
 	})
+
+	t.Run("Пакета не существует на сервере и он не был загружен", func(t *testing.T) {
+		expectedFile := "./funny1.png"
+		err := UpdatePackages(UpdatePackagesIn{
+			SshConfig: sshCfg,
+			Packages: []PackageRequest{{
+				Name: "package-1",
+				Ver:  "1.0",
+			}},
+		})
+
+		assert.NoFileExists(t, expectedFile)
+		assert.Error(t, err)
+	})
+
+	t.Run("Пакета не существует на сервере и он не был загружен", func(t *testing.T) {
+		expectedFile := "./funny1.png"
+		err := UpdatePackages(UpdatePackagesIn{
+			SshConfig: sshCfg,
+			Packages: []PackageRequest{{
+				Name: "package-1",
+				Ver:  "1.0",
+			}},
+		})
+
+		assert.NoFileExists(t, expectedFile)
+		assert.Error(t, err)
+	})
+	
+	t.Run("Пакета не существует на сервере и он не был загружен", func(t *testing.T) {
+		expectedFile := "./funny1.png"
+		err := UpdatePackages(UpdatePackagesIn{
+			SshConfig: sshCfg,
+			Packages: []PackageRequest{{
+				Name: "package-1",
+				Ver:  "1.0",
+			}},
+		})
+
+		assert.NoFileExists(t, expectedFile)
+		assert.Error(t, err)
+	})
 }
 
 func UpdatePackages(a UpdatePackagesIn) error { return nil }
