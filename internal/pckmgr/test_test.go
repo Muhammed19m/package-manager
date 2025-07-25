@@ -45,29 +45,59 @@ func Test_CreatePackage(t *testing.T) {
 			Name:     "package-1",
 			Ver:      "1.0",
 			Targets:  []Target{
-				"./funny.png"
-			}
+				"./funny.png",
+			},
 			Packages: []PackageDependency{},
 		})
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("успешная загрузка по строковому шаблону", func(t *testing.T) {
+	t.Run("успешная загрузка по расширенному шаблону", func(t *testing.T) {
 		err := CreatePackage(PackageForCreate{
 			Name:     "package-1",
 			Ver:      "1.0",
 			Targets:  []Target{
 				TargetExtended{
-					Path: "",
-					Exclude: ""
-				}
-			}
+					Path: "./funny*.png",
+					Exclude: "",
+				},
+			},
 			Packages: []PackageDependency{},
 		})
 
 		assert.NoError(t, err)
 	})
+
+	t.Run("успешная загрузка вместе с зависимостью", func(t *testing.T) {
+		err := CreatePackage(PackageForCreate{
+			Name:     "package-1",
+			Ver:      "1.0",
+			Targets:  []Target{
+				"./funny.png",
+			},
+			Packages: []PackageDependency{
+				{Name: "package-3", Ver: "<=2.0"},
+			},
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("зависимость должна существовать", func(t *testing.T) {
+		err := CreatePackage(PackageForCreate{
+			Name:     "package-1",
+			Ver:      "1.0",
+			Targets:  []Target{
+				"./funny.png",
+			},
+			Packages: []PackageDependency{
+				{Name: "package-not-exits", Ver: "<=2.0"},
+			},
+		})
+
+		assert.Error(t, err)
+	})
 }
 
-func CreatePackage() error{return nil}
+func CreatePackage(a PackageForCreate) error{return nil}
