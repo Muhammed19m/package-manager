@@ -46,11 +46,12 @@ func (suite *testSuite) newSshContainer() {
 				"USER_PASSWORD":   suite.sshConfig.Passwd,
 				"PASSWORD_ACCESS": "true",
 			},
-			WaitingFor: wait.ForLog("Server listening on").WithStartupTimeout(30 * time.Second),
+			WaitingFor: wait.ForLog("sshd is listening on port 2222").WithStartupTimeout(5 * time.Second),
 		},
 	})
 	suite.Require().NoError(err)
 	suite.sshServerCloser = func() {
+		suite.Require().NotNil(sshContainer)
 		_ = sshContainer.Terminate(context.Background())
 	}
 

@@ -1,60 +1,47 @@
 package pkgmgr
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func Test_CreatePackage(t *testing.T) {
+func (suite *testSuite) Test_CreatePackage() {
 	// 1. создать тестконтейнер системы с запущенныи ssh
 	// 2. создать SshConfig к этому контейнеру
-	sshCfg := SshConfig{
-		Host:         "",
-		User:         "",
-		PackagesDir:  "",
-		Passwd:       "",
-		IdentityFile: "",
-	}
-
-	t.Run("Name должен быть валидным", func(t *testing.T) {
+	
+	suite.Run("Name не должен быть пустым", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "",
 			Ver:       "",
 			Targets:   []Target{},
 			Packages:  []PackageDependency{},
 		})
-		assert.Error(t, err)
+		suite.Error(err)
 	})
 
-	t.Run("Ver должен быть валидным", func(t *testing.T) {
+	suite.Run("Ver должен быть валидным", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "",
 			Ver:       "",
 			Targets:   []Target{},
 			Packages:  []PackageDependency{},
 		})
 
-		assert.Error(t, err)
+		suite.Error(err)
 	})
 
-	t.Run("Targets не должен быть пустым", func(t *testing.T) {
+	suite.Run("Targets не должен быть пустым", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "",
 			Ver:       "",
 			Targets:   []Target{},
 			Packages:  []PackageDependency{},
 		})
 
-		assert.Error(t, err)
+		suite.Error(err)
 	})
 
-	t.Run("успешная загрузка по шаблону", func(t *testing.T) {
+	suite.Run("успешная загрузка по шаблону", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "package-1",
 			Ver:       "1.0",
 			Targets: []Target{
@@ -65,12 +52,12 @@ func Test_CreatePackage(t *testing.T) {
 			Packages: []PackageDependency{},
 		})
 
-		assert.NoError(t, err)
+		suite.NoError(err)
 	})
 
-	t.Run("успешная загрузка по шаблону с исключением", func(t *testing.T) {
+	suite.Run("успешная загрузка по шаблону с исключением", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "package-1",
 			Ver:       "1.0",
 			Targets: []Target{
@@ -82,12 +69,12 @@ func Test_CreatePackage(t *testing.T) {
 			Packages: []PackageDependency{},
 		})
 
-		assert.NoError(t, err)
+		suite.NoError(err)
 	})
 
-	t.Run("успешная загрузка вместе с зависимостью", func(t *testing.T) {
+	suite.Run("успешная загрузка вместе с зависимостью", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "package-1",
 			Ver:       "1.0",
 			Targets: []Target{
@@ -100,12 +87,12 @@ func Test_CreatePackage(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
+		suite.NoError(err)
 	})
 
-	t.Run("зависимость должна существовать", func(t *testing.T) {
+	suite.Run("зависимость должна существовать", func() {
 		err := CreatePackage(CreatePackageIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Name:      "package-1",
 			Ver:       "1.0",
 			Targets: []Target{
@@ -118,6 +105,6 @@ func Test_CreatePackage(t *testing.T) {
 			},
 		})
 
-		assert.Error(t, err)
+		suite.Error(err)
 	})
 }
