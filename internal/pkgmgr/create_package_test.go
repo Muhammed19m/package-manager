@@ -8,35 +8,35 @@ func (suite *testSuite) Test_CreatePackage() {
 		err := CreatePackage(CreatePackageIn{
 			SshConfig: suite.sshConfig,
 			Name:      "",
-			Ver:       "",
-			Targets:   []Target{},
+			Ver:       "1.0",
+			Targets:   []Target{{}},
 			Packages:  []PackageDependency{},
 		})
-		suite.Error(err)
+		suite.ErrorIs(err, ErrNameEmpty)
 	})
 
 	suite.Run("Ver должен быть валидным", func() {
 		err := CreatePackage(CreatePackageIn{
 			SshConfig: suite.sshConfig,
-			Name:      "",
+			Name:      "somename",
 			Ver:       "",
-			Targets:   []Target{},
+			Targets:   []Target{{}},
 			Packages:  []PackageDependency{},
 		})
 
-		suite.Error(err)
+		suite.ErrorIs(err, ErrVerInvalid)
 	})
 
 	suite.Run("Targets не должен быть пустым", func() {
 		err := CreatePackage(CreatePackageIn{
 			SshConfig: suite.sshConfig,
-			Name:      "",
-			Ver:       "",
+			Name:      "somename",
+			Ver:       "1.0",
 			Targets:   []Target{},
 			Packages:  []PackageDependency{},
 		})
 
-		suite.Error(err)
+		suite.ErrorIs(err, ErrTargetsEmpty)
 	})
 
 	suite.Run("успешная загрузка по шаблону", func() {
@@ -53,6 +53,7 @@ func (suite *testSuite) Test_CreatePackage() {
 		})
 
 		suite.NoError(err)
+		// todo: проверить созданный архив
 	})
 
 	suite.Run("успешная загрузка по шаблону с исключением", func() {
@@ -61,7 +62,7 @@ func (suite *testSuite) Test_CreatePackage() {
 			Name:      "package-1",
 			Ver:       "1.0",
 			Targets: []Target{
-				Target{
+				{
 					Path:    "./funny*.png",
 					Exclude: "*exluded.png",
 				},
@@ -70,5 +71,6 @@ func (suite *testSuite) Test_CreatePackage() {
 		})
 
 		suite.NoError(err)
+		// todo: проверить созданный архив
 	})
 }
