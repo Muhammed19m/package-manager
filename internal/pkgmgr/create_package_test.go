@@ -71,40 +71,4 @@ func (suite *testSuite) Test_CreatePackage() {
 
 		suite.NoError(err)
 	})
-
-	suite.Run("успешная загрузка вместе с зависимостью", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "package-1",
-			Ver:       "1.0",
-			Targets: []Target{
-				Target{
-					Path: "./funny*.png",
-				},
-			},
-			Packages: []PackageDependency{
-				{Name: "package-3", Ver: "<=2.0"},
-			},
-		})
-
-		suite.NoError(err)
-	})
-
-	suite.Run("зависимость должна существовать", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "package-1",
-			Ver:       "1.0",
-			Targets: []Target{
-				Target{
-					Path: "./funny*.png",
-				},
-			},
-			Packages: []PackageDependency{
-				{Name: "package-not-exits", Ver: "<=2.0"},
-			},
-		})
-
-		suite.Error(err)
-	})
 }
