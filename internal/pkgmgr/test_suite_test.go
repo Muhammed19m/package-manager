@@ -2,31 +2,21 @@ package pkgmgr
 
 import (
 	"context"
-	"errors"
-	"math/rand"
-	"os"
-	"path/filepath"
+	"path"
 	"testing"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v7"
-	"github.com/google/uuid"
 	testifySuite "github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-
-	oauthProvider "github.com/nice-pea/npchat/internal/adapter/oauth_provider"
-	"github.com/nice-pea/npchat/internal/domain/chatt"
-	"github.com/nice-pea/npchat/internal/domain/sessionn"
-	"github.com/nice-pea/npchat/internal/domain/userr"
-	pgsqlRepository "github.com/nice-pea/npchat/internal/repository/pgsql_repository"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type testSuite struct {
 	testifySuite.Suite
-	factoryCloser func()
-	sshConfig SshConfig
+	sshServerCloser func()
+	sshConfig       SshConfig
+	sshCleanup      func()
 }
-
 
 func Test_TestSuite(t *testing.T) {
 	if testing.Short() {
@@ -36,189 +26,60 @@ func Test_TestSuite(t *testing.T) {
 	testifySuite.Run(t, new(testSuite))
 }
 
+func (suite *testSuite) newSshContainer() {
+	// Конфигурация для подключения
+	suite.sshConfig = SshConfig{
+		Host:        "localhost:2222",
+		User:        "testuser",
+		Passwd:      "testpass",
+		PackagesDir: "/tmp/pkgs",
+	}
 
+	// Создать контейнер
+	sshContainer, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
+		Started: true,
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "linuxserver/openssh-server:version-10.0_p1-r7",
+			ExposedPorts: []string{"2222/tcp"},
+			Env: map[string]string{
+				"USER_NAME":       suite.sshConfig.User,
+				"USER_PASSWORD":   suite.sshConfig.Passwd,
+				"PASSWORD_ACCESS": "true",
+			},
+			WaitingFor: wait.ForLog("Server listening on").WithStartupTimeout(30 * time.Second),
+		},
+	})
+	suite.Require().NoError(err)
+	suite.sshServerCloser = func() {
+		_ = sshContainer.Terminate(context.Background())
+	}
 
-func (suite *testSuite) newPgsqlContainerFactory() (closer func()) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Создать директорию для пакетов
+	ctxMkdir, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-
-
-	osContainer, err := postgres.Run(ctx,
-		"postgres:17",
-		postgres.WithInitScripts(migrations...),
-		postgres.WithDatabase("test_npc_db"),
-		postgres.WithUsername("test_npc_user"),
-		postgres.WithPassword("test_npc_password"),
-		postgres.BasicWaitStrategies(),
-	)
-	suite.Require().NoError(err)
-	dsn, err := osContainer.ConnectionString(ctx, "sslmode=disable")
+	_, _, err = sshContainer.Exec(ctxMkdir, []string{"mkdir", "-p", suite.sshConfig.PackagesDir})
 	suite.Require().NoError(err)
 
-
-	return func() {
-		_ = f.Close()
-		_ = osContainer.Terminate(context.Background())
+	suite.sshCleanup = func() {
+		// Удалить все из директории пакетов
+		ctxCleanup, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		_, _, err := sshContainer.Exec(ctxCleanup, []string{"rm", "-r", path.Join(suite.sshConfig.PackagesDir, "/*")})
+		suite.Require().NoError(err)
 	}
 }
 
 // SetupTest выполняется перед каждым тестом, связанным с suite
 func (suite *testSuite) SetupTest() {
-	// Инициализация фабрики репозиториев
-	if pgsqlDSN != "" {
-		suite.factory, suite.factoryCloser = suite.newPgsqlExternalFactory(pgsqlDSN)
-	} else {
-		suite.factory, suite.factoryCloser = suite.newPgsqlContainerFactory()
-	}
-
-	// Инициализация репозиториев
-	suite.rr.chats = suite.factory.NewChattRepository()
-	suite.rr.users = suite.factory.NewUserrRepository()
-	suite.rr.sessions = suite.factory.NewSessionnRepository()
-
-	// Инициализация адаптеров
-	suite.mockOAuthUsers = suite.generateMockUsers()
-	suite.mockOAuthTokens = make(map[string]userr.OpenAuthToken, len(suite.mockOAuthUsers))
-	for token := range suite.mockOAuthUsers {
-		suite.mockOAuthTokens[randomString(13)] = token
-	}
-	suite.ad.oauth = &oauthProvider.Mock{
-		ExchangeFunc: func(code string) (userr.OpenAuthToken, error) {
-			token, ok := suite.mockOAuthTokens[code]
-			if !ok {
-				return userr.OpenAuthToken{}, errors.New("token not found")
-			}
-			return token, nil
-		},
-		UserFunc: func(token userr.OpenAuthToken) (userr.OpenAuthUser, error) {
-			user, ok := suite.mockOAuthUsers[token]
-			if !ok {
-				return userr.OpenAuthUser{}, errors.New("user not found")
-			}
-			return user, nil
-		},
-		AuthorizationURLFunc: func(state string) string {
-			return "https://provider.com/o/oauth2/auth?code=somecode&state=" + state
-		},
-	}
-
-	// Создание сервисов
-	suite.ss.chats = &Chats{
-		Repo: suite.rr.chats,
-	}
-	suite.ss.sessions = &Sessions{
-		Repo: suite.rr.sessions,
-	}
-	suite.ss.users = &Users{
-		Providers:    OAuthProviders{suite.ad.oauth.Name(): suite.ad.oauth},
-		Repo:         suite.rr.users,
-		SessionsRepo: suite.rr.sessions,
-	}
+	suite.newSshContainer()
 }
 
 // TearDownSubTest выполняется после каждого подтеста, связанного с suite
 func (suite *testSuite) TearDownSubTest() {
-	err := suite.factory.Cleanup()
-	suite.Require().NoError(err)
+	suite.sshCleanup()
 }
 
 // TearDownSubTest выполняется после каждого подтеста, связанного с suite
 func (suite *testSuite) TearDownTest() {
-	suite.factoryCloser()
-}
-
-// upsertChat сохраняет чат в репозиторий, в случае ошибки завершит тест
-func (suite *testSuite) upsertChat(chat chatt.Chat) chatt.Chat {
-	err := suite.rr.chats.Upsert(chat)
-	suite.Require().NoError(err)
-
-	return chat
-}
-
-// upsertChat сохраняет чат в репозиторий, в случае ошибки завершит тест
-func (suite *testSuite) rndChat() chatt.Chat {
-	chat, err := chatt.NewChat(gofakeit.Noun(), uuid.New())
-	suite.Require().NoError(err)
-
-	return chat
-}
-
-// newParticipant создает случайного участника
-func (suite *testSuite) newParticipant(userID uuid.UUID) chatt.Participant {
-	p, err := chatt.NewParticipant(userID)
-	suite.Require().NoError(err)
-	return p
-}
-
-func (suite *testSuite) addRndParticipant(chat *chatt.Chat) chatt.Participant {
-	p, err := chatt.NewParticipant(uuid.New())
-	suite.Require().NoError(err)
-	suite.Require().NoError(chat.AddParticipant(p))
-
-	return p
-}
-
-func (suite *testSuite) addParticipant(chat *chatt.Chat, p chatt.Participant) {
-	suite.Require().NoError(chat.AddParticipant(p))
-}
-
-func (suite *testSuite) newInvitation(subjectID, recipientID uuid.UUID) chatt.Invitation {
-	i, err := chatt.NewInvitation(subjectID, recipientID)
-	suite.Require().NoError(err)
-	return i
-}
-
-func (suite *testSuite) addInvitation(chat *chatt.Chat, i chatt.Invitation) {
-	suite.Require().NoError(chat.AddInvitation(i))
-}
-
-// randomString генерирует случайную строку
-func randomString(n int) string {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
-// randomOAuthToken генерирует случайный OAuthToken
-func (suite *testSuite) randomOAuthToken() userr.OpenAuthToken {
-	t, err := userr.NewOpenAuthToken(
-		randomString(32), // AccessToken
-		"Bearer",         // TokenType
-		randomString(32), // RefreshToken
-		time.Now().Add(time.Hour*24*time.Duration(rand.Intn(7)+1)), // Expiry
-
-	)
-	suite.Require().NoError(err)
-
-	return t
-}
-
-// Генерация случайного OAuthUser
-func (suite *testSuite) randomOAuthUser() userr.OpenAuthUser {
-	u, err := userr.NewOpenAuthUser(
-		randomString(21),                                      // ID
-		(&oauthProvider.Mock{}).Name(),                        // Provider
-		randomString(8)+"@example.com",                        // Email
-		randomString(6)+" "+randomString(7),                   // Name
-		"https://example.com/avatar/"+randomString(10)+".png", // Picture
-		userr.OpenAuthToken{},                                 // Token
-	)
-	suite.Require().NoError(err)
-
-	return u
-}
-
-func (suite *testSuite) generateMockUsers() map[userr.OpenAuthToken]userr.OpenAuthUser {
-	tokenToUser := make(map[userr.OpenAuthToken]userr.OpenAuthUser)
-
-	for i := 0; i < 10; i++ {
-		token := suite.randomOAuthToken()
-		user := suite.randomOAuthUser()
-		tokenToUser[token] = user
-	}
-
-	return tokenToUser
+	suite.sshServerCloser()
 }

@@ -25,7 +25,6 @@ func Test_CreatePackage(t *testing.T) {
 			Targets:   []Target{},
 			Packages:  []PackageDependency{},
 		})
-
 		assert.Error(t, err)
 	})
 
