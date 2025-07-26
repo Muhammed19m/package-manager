@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrNameEmpty = errors.New("имя пустое")
-	ErrVerInvalid = errors.New("неправильная версия")
+	ErrNameEmpty    = errors.New("имя пустое")
+	ErrVerInvalid   = errors.New("неправильная версия")
 	ErrTargetsEmpty = errors.New("нет файлов для упаковки")
 )
 
@@ -30,6 +30,16 @@ func CreatePackage(a CreatePackageIn) error {
 		return ErrTargetsEmpty
 	}
 
-	return nil
+	// // Call Scp method with file you want to upload to remote server.
+	// // Please make sure the `tmp` floder exists.
+	// err := ssh.Scp("/root/source.csv", "/tmp/target.csv")
 
+	// // Handle errors
+	// if err != nil {
+	// 	panic("Can't run remote command: " + err.Error())
+	// } else {
+	// 	fmt.Println("success")
+	// }
+
+	return nil
 }

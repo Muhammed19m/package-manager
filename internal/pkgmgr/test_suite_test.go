@@ -29,7 +29,8 @@ func Test_TestSuite(t *testing.T) {
 func (suite *testSuite) newSshContainer() {
 	// Конфигурация для подключения
 	suite.sshConfig = SshConfig{
-		Host:        "localhost:2222",
+		Server:      "localhost",
+		Port:        "2222",
 		User:        "testuser",
 		Passwd:      "testpass",
 		PackagesDir: "/tmp/pkgs",
@@ -40,7 +41,7 @@ func (suite *testSuite) newSshContainer() {
 		Started: true,
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "linuxserver/openssh-server:version-10.0_p1-r7",
-			ExposedPorts: []string{"2222/tcp"},
+			ExposedPorts: []string{suite.sshConfig.Port + "/tcp"},
 			Env: map[string]string{
 				"USER_NAME":       suite.sshConfig.User,
 				"USER_PASSWORD":   suite.sshConfig.Passwd,

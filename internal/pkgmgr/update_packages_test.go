@@ -8,7 +8,6 @@ import (
 
 func Test_UpdatePackages(t *testing.T) {
 	sshCfg := SshConfig{
-		Host:         "",
 		User:         "",
 		Passwd:       "",
 		IdentityFile: "",
