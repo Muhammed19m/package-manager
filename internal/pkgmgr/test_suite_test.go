@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/go-connections/nat"
 	testifySuite "github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -30,24 +31,25 @@ func (suite *testSuite) newSshContainer() {
 	// Конфигурация для подключения
 	suite.sshConfig = SshConfig{
 		Server:      "localhost",
-		Port:        "2222",
+		Port:        "",// late
 		User:        "testuser",
 		Passwd:      "testpass",
 		PackagesDir: "/tmp/pkgs",
 	}
-
+	internalPort := nat.Port("2222/tcp")
 	// Создать контейнер
 	sshContainer, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
 		Started: true,
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "linuxserver/openssh-server:version-10.0_p1-r7",
-			ExposedPorts: []string{suite.sshConfig.Port + "/tcp"},
+			// ExposedPorts: []string{suite.sshConfig.Port + "/tcp"},
+			ExposedPorts: []string{internalPort.Port()},
 			Env: map[string]string{
 				"USER_NAME":       suite.sshConfig.User,
 				"USER_PASSWORD":   suite.sshConfig.Passwd,
 				"PASSWORD_ACCESS": "true",
 			},
-			WaitingFor: wait.ForLog("sshd is listening on port 2222").WithStartupTimeout(5 * time.Second),
+			WaitingFor: wait.ForListeningPort(internalPort).WithStartupTimeout(5 * time.Second),
 		},
 	})
 	suite.Require().NoError(err)
@@ -55,6 +57,11 @@ func (suite *testSuite) newSshContainer() {
 		suite.Require().NotNil(sshContainer)
 		_ = sshContainer.Terminate(context.Background())
 	}
+
+	// Связать внешний порт с внутренним
+	suitesshConfigPort, err := sshContainer.MappedPort(context.Background(), internalPort)
+	suite.Require().NoError(err)
+	suite.sshConfig.Port = suitesshConfigPort.Port()
 
 	// Создать директорию для пакетов
 	ctxMkdir, cancel := context.WithTimeout(context.Background(), time.Second*5)
