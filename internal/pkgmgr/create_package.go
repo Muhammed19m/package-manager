@@ -3,20 +3,23 @@ package pkgmgr
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver"
+	"github.com/appleboy/easyssh-proxy"
 	"github.com/mholt/archives"
 )
 
 var (
-	ErrNameEmpty    = errors.New("имя пустое")
-	ErrVerInvalid   = errors.New("неправильная версия")
-	ErrTargetsEmpty = errors.New("нет файлов для упаковки")
+	ErrNameEmpty     = errors.New("имя пустое")
+	ErrVerInvalid    = errors.New("неправильная версия")
+	ErrTargetsEmpty  = errors.New("нет файлов для упаковки")
+	ErrCreateArchive = errors.New("не удалось создать архив")
 )
 
 func CreatePackage(a CreatePackageIn) error {
@@ -35,27 +38,47 @@ func CreatePackage(a CreatePackageIn) error {
 		return ErrTargetsEmpty
 	}
 
-	// Call Scp method with file you want to upload to remote server.
-	// Please make sure the `tmp` floder exists.
-	err := ssh.Scp("/root/source.csv", "/tmp/target.csv")
+	var allFileNames []string
 
-	// Handle errors
+	for _, target := range a.Targets {
+		fileNames, err := filenamesByTarget(target)
+		if err != nil {
+			return err
+		}
+		allFileNames = append(allFileNames, fileNames...)
+	}
+
+	archiveName := a.Name + "-" + a.Ver + ".tar"
+	archiveAbs := path.Join(os.TempDir(), time.Now().String(), archiveName)
+
+	err = createArchive(allFileNames, archiveAbs)
 	if err != nil {
-		panic("Can't run remote command: " + err.Error())
-	} else {
-		fmt.Println("success")
+		return ErrCreateArchive
+	}
+
+	ssh := &easyssh.MakeConfig{
+		User:     a.SshConfig.User,
+		Server:   a.SshConfig.Server,
+		Password: a.SshConfig.Passwd,
+		Port:     a.SshConfig.Port,
+	}
+
+	remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
+
+	if err = ssh.Scp(archiveAbs, remoteTargetAbs); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func filenamesByTarget(target Target) ([]string, error){
-	var res []string 
+func filenamesByTarget(target Target) ([]string, error) {
+	var res []string
 	filenames, err := filepath.Glob(target.Path)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for _, name := range filenames {
 		matched, err := filepath.Match(target.Exclude, name)
 		if err != nil {
@@ -69,36 +92,35 @@ func filenamesByTarget(target Target) ([]string, error){
 	return res, nil
 }
 
-func createArchive(filenames []string) (string, error)  {
+func createArchive(filenames []string, outputArchive string) error {
 	currentDir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	
-	var archiveFilenames map[string]string
-	for _,name  := range filenames {
-		fileAbs, err := filepath.Abs(name)
-		if err != nil {
-			return "", err
-		}
-		archiveFilenames[fileAbs], err = filepath.Rel(currentDir, fileAbs)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	ctx := context.TODO()
-
-	// map files on disk to their paths in the archive using default settings (second arg)
-	filenames, err := archives.FilesFromDisk(ctx, nil,archiveFilenames)
 	if err != nil {
 		return err
 	}
 
+	var archiveFilenames map[string]string
+	for _, name := range filenames {
+		fileAbs, err := filepath.Abs(name)
+		if err != nil {
+			return err
+		}
+		archiveFilenames[fileAbs], err = filepath.Rel(currentDir, fileAbs)
+		if err != nil {
+			return err
+		}
+	}
 
+	ctx := context.Background()
+
+	// map files on disk to their paths in the archive using default settings (second arg)
+	var fileInfos []archives.FileInfo
+	fileInfos, err = archives.FilesFromDisk(ctx, nil, archiveFilenames)
+	if err != nil {
+		return err
+	}
 
 	// create the output file we'll write to
-	out, err := os.Create("/tmp/example.tar.gz")
+	out, err := os.Create(outputArchive)
 	if err != nil {
 		return err
 	}
@@ -108,13 +130,13 @@ func createArchive(filenames []string) (string, error)  {
 	// (since we're writing, we only set Archival, but if you're
 	// going to read, set Extraction)
 	format := archives.CompressedArchive{
-		Compression: archives.Gz{},
-		Archival:    archives.Tar{},
+		Archival: archives.Tar{},
 	}
 
 	// create the archive
-	err = format.Archive(ctx, out, filenames)
-	if err != nil {
+	if err = format.Archive(ctx, out, fileInfos); err != nil {
 		return err
 	}
+
+	return nil
 }
