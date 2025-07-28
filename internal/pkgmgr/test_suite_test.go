@@ -2,7 +2,7 @@ package pkgmgr
 
 import (
 	"context"
-	"path/filepath"
+	"path"
 	"testing"
 	"time"
 
@@ -72,10 +72,10 @@ func (suite *testSuite) newSshContainer() {
 
 	suite.sshCleanup = func() {
 		// Удалить все из директории пакетов
-		// ctxCleanup, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		// defer cancel()
-		pattern := filepath.Join(suite.sshConfig.PackagesDir, "*")
-		_, _, err := sshContainer.Exec(context.TODO(), []string{"rm", "-r", pattern})
+		ctxCleanup, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		pattern := path.Join(suite.sshConfig.PackagesDir, "*")
+		_, _, err := sshContainer.Exec(ctxCleanup, []string{"sh", "-c", "rm -r " + pattern})
 		suite.Require().NoError(err)
 	}
 }
