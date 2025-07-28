@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"path"
+
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,7 +40,6 @@ func CreatePackage(a CreatePackageIn) error {
 	}
 
 	var allFileNames []string
-
 	for _, target := range a.Targets {
 		fileNames, err := filenamesByTarget(target)
 		if err != nil {
@@ -50,11 +49,12 @@ func CreatePackage(a CreatePackageIn) error {
 	}
 
 	archiveName := a.Name + "-" + a.Ver + ".tar"
-	archiveAbs := path.Join(os.TempDir(), fmt.Sprint(time.Now().Unix()), archiveName)
+	archiveAbs := filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Unix()), archiveName)
 
 	if err = createArchive(allFileNames, archiveAbs); err != nil {
 		return ErrCreateArchive
 	}
+	defer os.Remove(archiveAbs)
 
 	ssh := &easyssh.MakeConfig{
 		User:     a.SshConfig.User,
@@ -63,7 +63,7 @@ func CreatePackage(a CreatePackageIn) error {
 		Port:     a.SshConfig.Port,
 	}
 
-	remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
+	remoteTargetAbs := filepath.Join(a.SshConfig.PackagesDir, archiveName)
 
 	if err = ssh.Scp(archiveAbs, remoteTargetAbs); err != nil {
 		return err
@@ -98,8 +98,7 @@ func createArchive(filenames []string, outputArchive string) error {
 		return err
 	}
 
-	pathDir := path.Dir(outputArchive)
-	if err =  os.MkdirAll(pathDir, os.ModeDir); err != nil {
+	if err = os.MkdirAll(filepath.Dir(outputArchive), 0755); err != nil {
 		return err
 	}
 
@@ -131,15 +130,8 @@ func createArchive(filenames []string, outputArchive string) error {
 	}
 	defer out.Close()
 
-	// we can use the CompressedArchive type to gzip a tarball
-	// (since we're writing, we only set Archival, but if you're
-	// going to read, set Extraction)
-	format := archives.CompressedArchive{
-		Archival: archives.Tar{},
-	}
-
 	// create the archive
-	if err = format.Archive(ctx, out, fileInfos); err != nil {
+	if err = (archives.Tar{}).Archive(ctx, out, fileInfos); err != nil {
 		return err
 	}
 
