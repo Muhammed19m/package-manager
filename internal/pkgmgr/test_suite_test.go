@@ -2,7 +2,7 @@ package pkgmgr
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -32,7 +32,7 @@ func (suite *testSuite) newSshContainer() {
 	// Конфигурация для подключения
 	suite.sshConfig = SshConfig{
 		Server:      "localhost",
-		Port:        "",// late
+		Port:        "", // late
 		User:        "testuser",
 		Passwd:      "testpass",
 		PackagesDir: "/tmp/pkgs",
@@ -42,7 +42,7 @@ func (suite *testSuite) newSshContainer() {
 	sshContainer, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
 		Started: true,
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "linuxserver/openssh-server:version-10.0_p1-r7",
+			Image: "linuxserver/openssh-server:version-10.0_p1-r7",
 			// ExposedPorts: []string{suite.sshConfig.Port + "/tcp"},
 			ExposedPorts: []string{internalPort.Port()},
 			Env: map[string]string{
@@ -72,9 +72,10 @@ func (suite *testSuite) newSshContainer() {
 
 	suite.sshCleanup = func() {
 		// Удалить все из директории пакетов
-		ctxCleanup, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		defer cancel()
-		_, _, err := sshContainer.Exec(ctxCleanup, []string{"rm", "-r", path.Join(suite.sshConfig.PackagesDir, "/*")})
+		// ctxCleanup, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		// defer cancel()
+		pattern := filepath.Join(suite.sshConfig.PackagesDir, "*")
+		_, _, err := sshContainer.Exec(context.TODO(), []string{"rm", "-r", pattern})
 		suite.Require().NoError(err)
 	}
 }
