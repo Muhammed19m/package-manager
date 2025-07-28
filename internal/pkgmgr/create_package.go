@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-
 	"path/filepath"
 	"strings"
 	"time"
@@ -49,7 +48,7 @@ func CreatePackage(a CreatePackageIn) error {
 	}
 
 	archiveName := a.Name + "-" + a.Ver + ".tar"
-	archiveAbs := filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Unix()), archiveName)
+	archiveAbs := filepath.Join(os.TempDir(), "pkgmgr", fmt.Sprint(time.Now().Unix()), archiveName)
 
 	if err = createArchive(allFileNames, archiveAbs); err != nil {
 		return ErrCreateArchive

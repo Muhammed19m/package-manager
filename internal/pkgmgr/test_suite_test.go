@@ -9,6 +9,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	testifySuite "github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -66,7 +67,7 @@ func (suite *testSuite) newSshContainer() {
 	// Создать директорию для пакетов
 	ctxMkdir, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	_, _, err = sshContainer.Exec(ctxMkdir, []string{"mkdir", "-p", suite.sshConfig.PackagesDir})
+	_, _, err = sshContainer.Exec(ctxMkdir, []string{"mkdir", "-p", suite.sshConfig.PackagesDir}, exec.WithUser(suite.sshConfig.User))
 	suite.Require().NoError(err)
 
 	suite.sshCleanup = func() {

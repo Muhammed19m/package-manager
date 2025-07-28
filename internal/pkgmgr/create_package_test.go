@@ -65,7 +65,7 @@ func (suite *testSuite) Test_CreatePackage() {
 	suite.Run("успешная загрузка по шаблону с исключением", func() {
 		err := CreatePackage(CreatePackageIn{
 			SshConfig: suite.sshConfig,
-			Name:      "package-1",
+			Name:      "package-33",
 			Ver:       "1.0",
 			Targets: []Target{
 				{
@@ -77,7 +77,7 @@ func (suite *testSuite) Test_CreatePackage() {
 		})
 
 		suite.NoError(err)
-		suite.assertRemoteFileExists("package-1-1.0.tar")
+		suite.assertRemoteFileExists("package-33-1.0.tar")
 	})
 }
 
