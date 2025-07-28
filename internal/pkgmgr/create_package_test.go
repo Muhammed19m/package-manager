@@ -52,7 +52,7 @@ func (suite *testSuite) Test_CreatePackage() {
 			Ver:       "1.0",
 			Targets: []Target{
 				{
-					Path: "./funny.png",
+					Path: "./funny*.png",
 				},
 			},
 			Packages: []PackageDependency{},

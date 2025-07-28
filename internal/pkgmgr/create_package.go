@@ -3,6 +3,7 @@ package pkgmgr
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path"
@@ -49,10 +50,9 @@ func CreatePackage(a CreatePackageIn) error {
 	}
 
 	archiveName := a.Name + "-" + a.Ver + ".tar"
-	archiveAbs := path.Join(os.TempDir(), time.Now().String(), archiveName)
+	archiveAbs := path.Join(os.TempDir(), fmt.Sprint(time.Now().Unix()), archiveName)
 
-	err = createArchive(allFileNames, archiveAbs)
-	if err != nil {
+	if err = createArchive(allFileNames, archiveAbs); err != nil {
 		return ErrCreateArchive
 	}
 
@@ -98,7 +98,12 @@ func createArchive(filenames []string, outputArchive string) error {
 		return err
 	}
 
-	var archiveFilenames map[string]string
+	pathDir := path.Dir(outputArchive)
+	if err =  os.MkdirAll(pathDir, os.ModeDir); err != nil {
+		return err
+	}
+
+	archiveFilenames := make(map[string]string)
 	for _, name := range filenames {
 		fileAbs, err := filepath.Abs(name)
 		if err != nil {
