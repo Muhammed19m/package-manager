@@ -53,7 +53,7 @@ func CreatePackage(a CreatePackageIn) error {
 	if err = createArchive(allFileNames, archiveAbs); err != nil {
 		return ErrCreateArchive
 	}
-	defer os.Remove(archiveAbs)
+	// defer os.Remove(archiveAbs)
 
 	ssh := &easyssh.MakeConfig{
 		User:     a.SshConfig.User,
@@ -79,7 +79,8 @@ func filenamesByTarget(target Target) ([]string, error) {
 	}
 
 	for _, name := range filenames {
-		matched, err := filepath.Match(target.Exclude, name)
+		exludeClean := filepath.Clean(target.Exclude)
+		matched, err := filepath.Match(exludeClean, name)
 		if err != nil {
 			return nil, err
 		}

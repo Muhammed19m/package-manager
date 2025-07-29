@@ -1,28 +1,28 @@
 package pkgmgr
 
 import (
-	"testing"
+	"path/filepath"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/appleboy/easyssh-proxy"
 )
 
-func Test_UpdatePackages(t *testing.T) {
+func (suite *testSuite) Test_UpdatePackages() {
 	sshCfg := SshConfig{
 		User:         "",
 		Passwd:       "",
 		IdentityFile: "",
 	}
 
-	t.Run("Packages не должно быть пустым", func(t *testing.T) {
+	suite.Run("Packages не должно быть пустым", func() {
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig: sshCfg,
 			Packages:  []PackageRequest{},
 		})
 
-		assert.Error(t, err)
+		suite.Error(err)
 	})
 
-	t.Run("Пакет успешно загружен и существет в директории", func(t *testing.T) {
+	suite.Run("Пакет успешно загружен и существет в директории", func() {
 		expectedFile := "./funny1.png"
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig: sshCfg,
@@ -32,11 +32,11 @@ func Test_UpdatePackages(t *testing.T) {
 			}},
 		})
 
-		assert.FileExists(t, expectedFile)
-		assert.NoError(t, err)
+		suite.FileExists(expectedFile)
+		suite.Error(err)
 	})
 
-	t.Run("Пакета не существует на сервере и он не был загружен", func(t *testing.T) {
+	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
 		expectedFile := "./funny1.png"
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig: sshCfg,
@@ -46,7 +46,20 @@ func Test_UpdatePackages(t *testing.T) {
 			}},
 		})
 
-		assert.NoFileExists(t, expectedFile)
-		assert.Error(t, err)
+		suite.FileExists(expectedFile)
+		suite.Error(err)
 	})
+}
+
+func (suite *testSuite) copyTestFile(localArchive string, sshConfig SshConfig) {
+	ssh := &easyssh.MakeConfig{
+		User:     sshConfig.User,
+		Server:   sshConfig.Server,
+		Password: sshConfig.Passwd,
+		Port:     sshConfig.Port,
+	}
+
+	remoteTargetAbs := filepath.Join(sshConfig.PackagesDir, localArchive)
+	err := ssh.Scp(localArchive, remoteTargetAbs)
+	suite.Require().NoError(err)
 }

@@ -7,9 +7,6 @@ import (
 )
 
 func (suite *testSuite) Test_CreatePackage() {
-	// 1. создать тестконтейнер системы с запущенныи ssh
-	// 2. создать SshConfig к этому контейнеру
-
 	suite.Run("Name не должен быть пустым", func() {
 		err := CreatePackage(CreatePackageIn{
 			SshConfig: suite.sshConfig,
@@ -52,7 +49,7 @@ func (suite *testSuite) Test_CreatePackage() {
 			Ver:       "1.0",
 			Targets: []Target{
 				{
-					Path: "./funny*.png",
+					Path: "./testdata/funny*.png",
 				},
 			},
 			Packages: []PackageDependency{},
@@ -69,8 +66,8 @@ func (suite *testSuite) Test_CreatePackage() {
 			Ver:       "1.0",
 			Targets: []Target{
 				{
-					Path:    "./funny*.png",
-					Exclude: "*exluded.png",
+					Path:    "./testdata/funny*.png",
+					Exclude: "./testdata/*exluded.png",
 				},
 			},
 			Packages: []PackageDependency{},
