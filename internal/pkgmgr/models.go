@@ -27,8 +27,9 @@ type PackageDependency struct {
 
 // UpdatePackagesIn представляет собой запрос пакетов к скачиванию
 type UpdatePackagesIn struct {
-	SshConfig SshConfig
-	Packages  []PackageRequest
+	SshConfig   SshConfig
+	DownloadDir string
+	Packages    []PackageRequest
 }
 
 // PackageRequest пакет

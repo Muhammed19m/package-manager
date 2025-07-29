@@ -7,15 +7,9 @@ import (
 )
 
 func (suite *testSuite) Test_UpdatePackages() {
-	sshCfg := SshConfig{
-		User:         "",
-		Passwd:       "",
-		IdentityFile: "",
-	}
-
 	suite.Run("Packages не должно быть пустым", func() {
 		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Packages:  []PackageRequest{},
 		})
 
@@ -23,9 +17,13 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 
 	suite.Run("Пакет успешно загружен и существет в директории", func() {
-		expectedFile := "./funny1.png"
+		expectedFile := "./testtmp/package-1-1.0.tar"
+		
+		suite.copyTestFile("./testdata/package-1-1.0.tar")
+
 		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
+			DownloadDir: "./testtmp",
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
@@ -38,8 +36,11 @@ func (suite *testSuite) Test_UpdatePackages() {
 
 	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
 		expectedFile := "./funny1.png"
+		
+		suite.copyTestFile("./testdata/package-1-1.0.tar")
+
 		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: sshCfg,
+			SshConfig: suite.sshConfig,
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
@@ -51,15 +52,15 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 }
 
-func (suite *testSuite) copyTestFile(localArchive string, sshConfig SshConfig) {
+func (suite *testSuite) copyTestFile(localArchive string) {
 	ssh := &easyssh.MakeConfig{
-		User:     sshConfig.User,
-		Server:   sshConfig.Server,
-		Password: sshConfig.Passwd,
-		Port:     sshConfig.Port,
+		User:     suite.sshConfig.User,
+		Server:   suite.sshConfig.Server,
+		Password: suite.sshConfig.Passwd,
+		Port:     suite.sshConfig.Port,
 	}
 
-	remoteTargetAbs := filepath.Join(sshConfig.PackagesDir, localArchive)
+	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, localArchive)
 	err := ssh.Scp(localArchive, remoteTargetAbs)
 	suite.Require().NoError(err)
 }
