@@ -2,10 +2,11 @@ package pkgmgr
 
 import (
 	"errors"
+	"net"
 	"os"
 	"path/filepath"
 
-	"github.com/appleboy/easyssh-proxy"
+	"github.com/povsister/scp"
 )
 
 var (
@@ -21,22 +22,22 @@ func UpdatePackages(a UpdatePackagesIn) error {
 		return err
 	}
 
-	ssh := &easyssh.MakeConfig{
-		User:     a.SshConfig.User,
-		Server:   a.SshConfig.Server,
-		Password: a.SshConfig.Passwd,
-		Port:     a.SshConfig.Port,
+	clientConf := scp.NewSSHConfigFromPassword(a.SshConfig.User, a.SshConfig.Passwd)
+	host := net.JoinHostPort(a.SshConfig.Server, a.SshConfig.Port)
+	scpClient, err := scp.NewClient(host, clientConf, &scp.ClientOption{})
+	if err != nil {
+		return err
 	}
+	defer scpClient.Close()
 
 	for _, pkg := range a.Packages {
 
 		archiveName := pkg.Name + "-" + pkg.Ver + ".tar"
 		remoteTargetAbs := filepath.Join(a.SshConfig.PackagesDir, archiveName)
 
-		if err := ssh.Scp(remoteTargetAbs, a.DownloadDir); err != nil {
+		if err := scpClient.CopyFileFromRemote(remoteTargetAbs, a.DownloadDir, &scp.FileTransferOption{}); err != nil {
 			return err
 		}
-
 	}
 
 	return nil

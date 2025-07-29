@@ -18,11 +18,11 @@ func (suite *testSuite) Test_UpdatePackages() {
 
 	suite.Run("Пакет успешно загружен и существет в директории", func() {
 		expectedFile := "./testtmp/package-1-1.0.tar"
-		
+
 		suite.copyTestFile("./testdata/package-1-1.0.tar")
 
 		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: suite.sshConfig,
+			SshConfig:   suite.sshConfig,
 			DownloadDir: "./testtmp",
 			Packages: []PackageRequest{{
 				Name: "package-1",
@@ -31,16 +31,17 @@ func (suite *testSuite) Test_UpdatePackages() {
 		})
 
 		suite.FileExists(expectedFile)
-		suite.Error(err)
+		suite.NoError(err)
 	})
 
 	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
-		expectedFile := "./funny1.png"
-		
+		expectedFile := "./testtmp/package-1-1.0.tar"
+
 		suite.copyTestFile("./testdata/package-1-1.0.tar")
 
 		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: suite.sshConfig,
+			SshConfig:   suite.sshConfig,
+			DownloadDir: "./testtmp",
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
@@ -48,7 +49,7 @@ func (suite *testSuite) Test_UpdatePackages() {
 		})
 
 		suite.FileExists(expectedFile)
-		suite.Error(err)
+		suite.NoError(err)
 	})
 }
 
@@ -60,7 +61,7 @@ func (suite *testSuite) copyTestFile(localArchive string) {
 		Port:     suite.sshConfig.Port,
 	}
 
-	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, localArchive)
+	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, filepath.Base(localArchive))
 	err := ssh.Scp(localArchive, remoteTargetAbs)
 	suite.Require().NoError(err)
 }
