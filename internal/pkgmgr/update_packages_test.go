@@ -60,8 +60,11 @@ func (suite *testSuite) copyTestFile(localArchive string) {
 		Password: suite.sshConfig.Passwd,
 		Port:     suite.sshConfig.Port,
 	}
+	localArchive = filepath.Clean(localArchive)
+	localArchive, err := filepath.Localize(localArchive)
+	suite.Require().NoError(err)
 
-	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, filepath.Base(localArchive))
-	err := ssh.Scp(localArchive, remoteTargetAbs)
+	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, localArchive)
+	err = ssh.Scp(localArchive, remoteTargetAbs)
 	suite.Require().NoError(err)
 }

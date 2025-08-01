@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -62,7 +63,7 @@ func CreatePackage(a CreatePackageIn) error {
 		Port:     a.SshConfig.Port,
 	}
 
-	remoteTargetAbs := filepath.Join(a.SshConfig.PackagesDir, archiveName)
+	remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
 
 	if err = ssh.Scp(archiveAbs, remoteTargetAbs); err != nil {
 		return err

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net"
 	"os"
-	"path/filepath"
+	"path"
 
 	"github.com/povsister/scp"
 )
@@ -33,7 +33,7 @@ func UpdatePackages(a UpdatePackagesIn) error {
 	for _, pkg := range a.Packages {
 
 		archiveName := pkg.Name + "-" + pkg.Ver + ".tar"
-		remoteTargetAbs := filepath.Join(a.SshConfig.PackagesDir, archiveName)
+		remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
 
 		if err := scpClient.CopyFileFromRemote(remoteTargetAbs, a.DownloadDir, &scp.FileTransferOption{}); err != nil {
 			return err
