@@ -1,6 +1,7 @@
 package pkgmgr
 
 import (
+	"path"
 	"path/filepath"
 
 	"github.com/appleboy/easyssh-proxy"
@@ -17,9 +18,9 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 
 	suite.Run("Пакет успешно загружен и существет в директории", func() {
-		expectedFile := filepath.Join("testtmp","package-1-1.0.tar")
+		expectedFile := filepath.Join("testtmp", "package-1-1.0.tar")
 
-		suite.copyTestFile(filepath.Join("testdata","package-1-1.0.tar"))
+		suite.copyTestFile(filepath.Join("testdata", "package-1-1.0.tar"))
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
 			DownloadDir: "testtmp",
@@ -34,9 +35,9 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 
 	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
-		expectedFile := filepath.Join("testtmp","package-1-1.0.tar")
+		expectedFile := filepath.Join("testtmp", "package-1-1.0.tar")
 
-		suite.copyTestFile(filepath.Join("testdata","package-1-1.0.tar"))
+		suite.copyTestFile(filepath.Join("testdata", "package-1-1.0.tar"))
 
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
@@ -61,7 +62,7 @@ func (suite *testSuite) copyTestFile(file string) {
 	}
 
 	filename := filepath.Base(file)
-	remoteTargetAbs := filepath.Join(suite.sshConfig.PackagesDir, filename)
+	remoteTargetAbs := path.Join(suite.sshConfig.PackagesDir, filename)
 
 	err := ssh.Scp(file, remoteTargetAbs)
 	suite.Require().NoError(err)
