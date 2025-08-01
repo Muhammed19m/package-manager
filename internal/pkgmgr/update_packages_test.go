@@ -22,7 +22,7 @@ func (suite *testSuite) Test_UpdatePackages() {
 		suite.copyTestFile(filepath.Join("testdata","package-1-1.0.tar"))
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
-			DownloadDir: "./testtmp",
+			DownloadDir: "testtmp",
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
@@ -40,7 +40,7 @@ func (suite *testSuite) Test_UpdatePackages() {
 
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
-			DownloadDir: "./testtmp",
+			DownloadDir: "testtmp",
 			Packages: []PackageRequest{{
 				Name: "package-1",
 				Ver:  "1.0",
