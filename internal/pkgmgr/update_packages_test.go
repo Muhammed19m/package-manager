@@ -18,8 +18,6 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 
 	suite.Run("Пакет успешно загружен и существет в директории", func() {
-		expectedFile := filepath.Join("testtmp", "package-1-1.0.tar")
-
 		suite.copyTestFile(filepath.Join("testdata", "package-1-1.0.tar"))
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
@@ -30,15 +28,14 @@ func (suite *testSuite) Test_UpdatePackages() {
 			}},
 		})
 
-		suite.FileExists(expectedFile)
+		suite.FileExists(filepath.Join("testtmp", "funny_2.png"))
+		suite.FileExists(filepath.Join("testtmp", "funny_exluded.png"))
+		suite.FileExists(filepath.Join("testtmp", "funny.png"))
+
 		suite.NoError(err)
 	})
 
 	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
-		expectedFile := filepath.Join("testtmp", "package-1-1.0.tar")
-
-		suite.copyTestFile(filepath.Join("testdata", "package-1-1.0.tar"))
-
 		err := UpdatePackages(UpdatePackagesIn{
 			SshConfig:   suite.sshConfig,
 			DownloadDir: "testtmp",
@@ -48,8 +45,10 @@ func (suite *testSuite) Test_UpdatePackages() {
 			}},
 		})
 
-		suite.FileExists(expectedFile)
-		suite.NoError(err)
+		suite.NoFileExists(filepath.Join("testtmp", "funny_2.png"))
+		suite.NoFileExists(filepath.Join("testtmp", "funny_exluded.png"))
+		suite.NoFileExists(filepath.Join("testtmp", "funny.png"))
+		suite.Error(err)
 	})
 }
 

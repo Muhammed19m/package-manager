@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -112,6 +113,9 @@ func createArchive(filenames []string, outputArchive string) error {
 		archiveFilenames[fileAbs], err = filepath.Rel(currentDir, fileAbs)
 		if err != nil {
 			return err
+		}
+		if runtime.GOOS == "windows" {
+			archiveFilenames[fileAbs] = filepath.ToSlash(archiveFilenames[fileAbs])
 		}
 	}
 

@@ -2,6 +2,7 @@ package pkgmgr
 
 import (
 	"context"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -88,6 +89,7 @@ func (suite *testSuite) SetupTest() {
 // TearDownSubTest выполняется после каждого подтеста, связанного с suite
 func (suite *testSuite) TearDownSubTest() {
 	suite.sshCleanup()
+	os.RemoveAll("testtmp")
 }
 
 // TearDownSubTest выполняется после каждого подтеста, связанного с suite
