@@ -1,25 +1,27 @@
 package pkgmgr
 
-import "encoding/json"
+import (
+	"gopkg.in/yaml.v3"
+)
 
-func yamlToPackageInfo(j string) (PackageInfo, error) {
-	var jsonPkgInfo jsonPkgInfo
+func yamlToPackageInfo(y string) (PackageInfo, error) {
+	var yamlPkgInfo yamlPkgInfo
 
-	if err := json.Unmarshal([]byte(j), &jsonPkgInfo); err != nil {
+	if err := yaml.Unmarshal([]byte(y), &yamlPkgInfo); err != nil {
 		return PackageInfo{}, err
 	}
 
 	return PackageInfo{
-		Name:     jsonPkgInfo.Name,
-		Ver:      jsonPkgInfo.Ver,
-		Targets:  jsonPkgInfo.Targets,
-		Packages: jsonPkgInfo.Packages,
+		Name:     yamlPkgInfo.Name,
+		Ver:      yamlPkgInfo.Ver,
+		Targets:  yamlPkgInfo.Targets,
+		Packages: yamlPkgInfo.Packages,
 	}, nil
 }
 
-type jsonPkgInfo struct {
-	Name     string              `json:"name"`
-	Ver      string              `json:"ver"`
-	Targets  []Target            `json:"targets"`
-	Packages []PackageDependency `json:"packages"`
+type yamlPkgInfo struct {
+	Name     string              `yaml:"name"`
+	Ver      string              `yaml:"ver"`
+	Targets  []Target            `yaml:"targets"`
+	Packages []PackageDependency `yaml:"packages"`
 }

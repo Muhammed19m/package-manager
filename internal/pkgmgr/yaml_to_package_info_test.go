@@ -6,21 +6,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJsonToPackageInfo(t *testing.T) {
-	t.Run("не валдиный json", func(t *testing.T) {
-		json := "hi: 1"
-		pkgInfo, err := jsonToPackageInfo(json)
-		assert.Error(t, err)
+func TestYamlToPackageInfo(t *testing.T) {
+	t.Run("не валдиный yaml", func(t *testing.T) {
+		yaml := `{"hi": 1}`
+		pkgInfo, err := yamlToPackageInfo(yaml)
+		assert.NoError(t, err)
 		assert.Zero(t, pkgInfo)
 	})
 
-	t.Run("валидный json", func(t *testing.T) {
-		json := `{
-		"name": "package",
-		"ver": "1.0",
-		"targets": []
-		}`
-		pkgInfo, err := jsonToPackageInfo(json)
+	t.Run("валидный yaml", func(t *testing.T) {
+		yaml := `name: package
+ver: "1.0"
+targets: []`
+		pkgInfo, err := yamlToPackageInfo(yaml)
 		assert.NoError(t, err)
 		assert.NotZero(t, pkgInfo)
 	})
@@ -32,18 +30,16 @@ func TestJsonToPackageInfo(t *testing.T) {
 			Packages: nil,
 		}
 
-		json := `{
-		"name": "package",
-		"ver": "1.0",
-		"targets": [],
-		"test": 1
-		}`
-		pkgInfo, err := jsonToPackageInfo(json)
+		yaml := `name: package
+ver: "1.0"
+targets: []
+test: 1`
+		pkgInfo, err := yamlToPackageInfo(yaml)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedPkgInfo, pkgInfo)
 	})
 	t.Run("незаданные поля равны нулю", func(t *testing.T) {
-		pkgInfo, err := jsonToPackageInfo("{}")
+		pkgInfo, err := yamlToPackageInfo("some: q")
 		assert.NoError(t, err)
 		assert.Zero(t, pkgInfo)
 	})
