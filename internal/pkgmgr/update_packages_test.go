@@ -28,9 +28,9 @@ func (suite *testSuite) Test_UpdatePackages() {
 			}},
 		})
 
-		suite.FileExists(filepath.Join("testtmp", "funny_2.png"))
-		suite.FileExists(filepath.Join("testtmp", "funny_exluded.png"))
-		suite.FileExists(filepath.Join("testtmp", "funny.png"))
+		suite.FileExists(filepath.Join("testtmp", "testdata", "funny_2.png"))
+		suite.FileExists(filepath.Join("testtmp", "testdata", "funny_exluded.png"))
+		suite.FileExists(filepath.Join("testtmp", "testdata", "funny.png"))
 
 		suite.NoError(err)
 	})
@@ -45,9 +45,9 @@ func (suite *testSuite) Test_UpdatePackages() {
 			}},
 		})
 
-		suite.NoFileExists(filepath.Join("testtmp", "funny_2.png"))
-		suite.NoFileExists(filepath.Join("testtmp", "funny_exluded.png"))
-		suite.NoFileExists(filepath.Join("testtmp", "funny.png"))
+		suite.NoFileExists(filepath.Join("testtmp", "testdata", "funny_2.png"))
+		suite.NoFileExists(filepath.Join("testtmp", "testdata", "funny_exluded.png"))
+		suite.NoFileExists(filepath.Join("testtmp", "testdata", "funny.png"))
 		suite.Error(err)
 	})
 }

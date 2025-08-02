@@ -43,7 +43,6 @@ func UpdatePackages(a UpdatePackagesIn) error {
 	}
 
 	for _, pkg := range a.Packages {
-
 		archiveName := pkg.Name + "-" + pkg.Ver + ".tar"
 		remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
 
@@ -57,9 +56,7 @@ func UpdatePackages(a UpdatePackagesIn) error {
 		}
 		defer input.Close()
 
-		var format archives.Tar
-
-		err = format.Extract(context.TODO(), input, func(ctx context.Context, f archives.FileInfo) error {
+		err = (archives.Tar{}).Extract(context.TODO(), input, func(ctx context.Context, f archives.FileInfo) error {
 			archiveFile, err := f.Open()
 			if err != nil {
 				return err
@@ -70,15 +67,23 @@ func UpdatePackages(a UpdatePackagesIn) error {
 			if runtime.GOOS == "windows" {
 				nameInArchive = filepath.FromSlash(nameInArchive)
 			}
+			
+			filename := filepath.Join(a.DownloadDir, nameInArchive)
 
-			newFile, err := os.Create(filepath.Join(a.DownloadDir, nameInArchive))
+			if err = os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
+				return err
+			}
+
+			newFile, err := os.Create(filename)
 			if err != nil {
 				return err
 			}
 			defer newFile.Close()
 
-			if _, err = io.Copy(newFile, archiveFile); err != nil {
+			if bc, err := io.Copy(newFile, archiveFile); err != nil {
 				return err
+			} else {
+				fmt.Printf("Copied %d bytes to %s\n", bc, filename)
 			}
 
 			return nil
