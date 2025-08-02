@@ -2,7 +2,7 @@ package pkgmgr
 
 import "encoding/json"
 
-func jsonToPackageInfo(j string) (PackageInfo, error) {
+func yamlToPackageInfo(j string) (PackageInfo, error) {
 	var jsonPkgInfo jsonPkgInfo
 
 	if err := json.Unmarshal([]byte(j), &jsonPkgInfo); err != nil {
