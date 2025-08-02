@@ -8,45 +8,41 @@ import (
 
 func (suite *testSuite) Test_CreatePackage() {
 	suite.Run("Name не должен быть пустым", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "",
-			Ver:       "1.0",
-			Targets:   []Target{{}},
-			Packages:  []PackageDependency{},
+		err := CreatePackage(suite.sshConfig, PackageInfo{
+			Name:     "",
+			Ver:      "1.0",
+			Targets:  []Target{{}},
+			Packages: []PackageDependency{},
 		})
 		suite.ErrorIs(err, ErrNameEmpty)
 	})
 
 	suite.Run("Ver должен быть валидным", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "somename",
-			Ver:       "",
-			Targets:   []Target{{}},
-			Packages:  []PackageDependency{},
+		err := CreatePackage(suite.sshConfig, PackageInfo{
+			Name:     "somename",
+			Ver:      "",
+			Targets:  []Target{{}},
+			Packages: []PackageDependency{},
 		})
 
 		suite.ErrorIs(err, ErrVerInvalid)
 	})
 
 	suite.Run("Targets не должен быть пустым", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "somename",
-			Ver:       "1.0",
-			Targets:   []Target{},
-			Packages:  []PackageDependency{},
+		err := CreatePackage(suite.sshConfig, PackageInfo{
+			Name:     "somename",
+			Ver:      "1.0",
+			Targets:  []Target{},
+			Packages: []PackageDependency{},
 		})
 
 		suite.ErrorIs(err, ErrTargetsEmpty)
 	})
 
 	suite.Run("успешная загрузка по шаблону", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "package-1",
-			Ver:       "1.0",
+		err := CreatePackage(suite.sshConfig, PackageInfo{
+			Name: "package-1",
+			Ver:  "1.0",
 			Targets: []Target{
 				{
 					Path: "./testdata/funny*.png",
@@ -60,10 +56,9 @@ func (suite *testSuite) Test_CreatePackage() {
 	})
 
 	suite.Run("успешная загрузка по шаблону с исключением", func() {
-		err := CreatePackage(CreatePackageIn{
-			SshConfig: suite.sshConfig,
-			Name:      "package-33",
-			Ver:       "1.0",
+		err := CreatePackage(suite.sshConfig, PackageInfo{
+			Name: "package-33",
+			Ver:  "1.0",
 			Targets: []Target{
 				{
 					Path:    "./testdata/funny*.png",

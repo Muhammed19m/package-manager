@@ -24,24 +24,24 @@ var (
 	ErrCreateArchive = errors.New("не удалось создать архив")
 )
 
-func CreatePackage(a CreatePackageIn) error {
-	a.Name = strings.TrimSpace(a.Name)
-	if a.Name == "" {
+func CreatePackage(sshCfg SshConfig, pkgInfo PackageInfo) error {
+	pkgInfo.Name = strings.TrimSpace(pkgInfo.Name)
+	if pkgInfo.Name == "" {
 		return ErrNameEmpty
 	}
 
-	_, err := semver.NewVersion(a.Ver)
+	_, err := semver.NewVersion(pkgInfo.Ver)
 	if err != nil {
 		slog.Error(err.Error())
 		return ErrVerInvalid
 	}
 
-	if len(a.Targets) == 0 {
+	if len(pkgInfo.Targets) == 0 {
 		return ErrTargetsEmpty
 	}
 
 	var allFileNames []string
-	for _, target := range a.Targets {
+	for _, target := range pkgInfo.Targets {
 		fileNames, err := filenamesByTarget(target)
 		if err != nil {
 			return err
@@ -49,7 +49,7 @@ func CreatePackage(a CreatePackageIn) error {
 		allFileNames = append(allFileNames, fileNames...)
 	}
 
-	archiveName := a.Name + "-" + a.Ver + ".tar"
+	archiveName := pkgInfo.Name + "-" + pkgInfo.Ver + ".tar"
 	archiveAbs := filepath.Join(os.TempDir(), "pkgmgr", fmt.Sprint(time.Now().Unix()), archiveName)
 
 	if err = createArchive(allFileNames, archiveAbs); err != nil {
@@ -58,13 +58,13 @@ func CreatePackage(a CreatePackageIn) error {
 	// defer os.Remove(archiveAbs)
 
 	ssh := &easyssh.MakeConfig{
-		User:     a.SshConfig.User,
-		Server:   a.SshConfig.Server,
-		Password: a.SshConfig.Passwd,
-		Port:     a.SshConfig.Port,
+		User:     sshCfg.User,
+		Server:   sshCfg.Server,
+		Password: sshCfg.Passwd,
+		Port:     sshCfg.Port,
 	}
 
-	remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
+	remoteTargetAbs := path.Join(sshCfg.PackagesDir, archiveName)
 
 	if err = ssh.Scp(archiveAbs, remoteTargetAbs); err != nil {
 		return err

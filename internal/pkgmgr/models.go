@@ -2,13 +2,12 @@ package pkgmgr
 
 //  Создание архивов
 
-// CreatePackageIn представляет собой мета информацию о пакете для создания архива и отправки его на сервер
-type CreatePackageIn struct {
-	SshConfig SshConfig
-	Name      string
-	Ver       string
-	Targets   []Target
-	Packages  []PackageDependency
+// PackageInfo представляет собой мета информацию о пакете для создания архива и отправки его на сервер
+type PackageInfo struct {
+	Name     string
+	Ver      string
+	Targets  []Target
+	Packages []PackageDependency
 }
 
 // Target это шаблон файлов для создания пакетов
@@ -25,12 +24,6 @@ type PackageDependency struct {
 
 //  Загрузка архивов
 
-// UpdatePackagesIn представляет собой запрос пакетов к скачиванию
-type UpdatePackagesIn struct {
-	SshConfig   SshConfig
-	DownloadDir string
-	Packages    []PackageRequest
-}
 
 // PackageRequest пакет
 type PackageRequest struct {

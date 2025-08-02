@@ -9,25 +9,23 @@ import (
 
 func (suite *testSuite) Test_UpdatePackages() {
 	suite.Run("Packages не должно быть пустым", func() {
-		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig: suite.sshConfig,
-			Packages:  []PackageRequest{},
-		})
+		err := UpdatePackages(
+			suite.sshConfig, 
+			"",
+			[]PackageRequest{},
+		)
 
 		suite.Error(err)
 	})
 
 	suite.Run("Пакет успешно загружен и существет в директории", func() {
 		suite.copyTestFile(filepath.Join("testdata", "package-1-1.0.tar"))
-		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig:   suite.sshConfig,
-			DownloadDir: "testtmp",
-			Packages: []PackageRequest{{
-				Name: "package-1",
-				Ver:  "1.0",
-			}},
-		})
-
+		err := UpdatePackages(
+			suite.sshConfig,
+			"testtmp",
+			 []PackageRequest{{Name: "package-1", Ver:  "1.0"}},
+			)
+		
 		suite.FileExists(filepath.Join("testtmp", "testdata", "funny_2.png"))
 		suite.FileExists(filepath.Join("testtmp", "testdata", "funny_exluded.png"))
 		suite.FileExists(filepath.Join("testtmp", "testdata", "funny.png"))
@@ -36,14 +34,11 @@ func (suite *testSuite) Test_UpdatePackages() {
 	})
 
 	suite.Run("Пакета не существует на сервере и он не был загружен", func() {
-		err := UpdatePackages(UpdatePackagesIn{
-			SshConfig:   suite.sshConfig,
-			DownloadDir: "testtmp",
-			Packages: []PackageRequest{{
-				Name: "package-1",
-				Ver:  "1.0",
-			}},
-		})
+		err := UpdatePackages(
+			suite.sshConfig,
+			 "testtmp",
+			 []PackageRequest{{Name: "package-1", Ver:  "1.0"}},
+			)
 
 		suite.NoFileExists(filepath.Join("testtmp", "testdata", "funny_2.png"))
 		suite.NoFileExists(filepath.Join("testtmp", "testdata", "funny_exluded.png"))

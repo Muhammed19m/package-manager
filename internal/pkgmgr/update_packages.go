@@ -20,17 +20,17 @@ var (
 	ErrPackagesEmpty = errors.New("список пакетов пустой")
 )
 
-func UpdatePackages(a UpdatePackagesIn) error {
-	if len(a.Packages) == 0 {
+func UpdatePackages(SshConfig SshConfig, DownloadDir string, Packages []PackageRequest) error {
+	if len(Packages) == 0 {
 		return ErrPackagesEmpty
 	}
 
-	if err := os.MkdirAll(a.DownloadDir, 0755); err != nil {
+	if err := os.MkdirAll(DownloadDir, 0755); err != nil {
 		return err
 	}
 
-	clientConf := scp.NewSSHConfigFromPassword(a.SshConfig.User, a.SshConfig.Passwd)
-	host := net.JoinHostPort(a.SshConfig.Server, a.SshConfig.Port)
+	clientConf := scp.NewSSHConfigFromPassword(SshConfig.User, SshConfig.Passwd)
+	host := net.JoinHostPort(SshConfig.Server, SshConfig.Port)
 	scpClient, err := scp.NewClient(host, clientConf, &scp.ClientOption{})
 	if err != nil {
 		return err
@@ -42,9 +42,9 @@ func UpdatePackages(a UpdatePackagesIn) error {
 		return err
 	}
 
-	for _, pkg := range a.Packages {
+	for _, pkg := range Packages {
 		archiveName := pkg.Name + "-" + pkg.Ver + ".tar"
-		remoteTargetAbs := path.Join(a.SshConfig.PackagesDir, archiveName)
+		remoteTargetAbs := path.Join(SshConfig.PackagesDir, archiveName)
 
 		if err := scpClient.CopyFileFromRemote(remoteTargetAbs, tmpDir, &scp.FileTransferOption{}); err != nil {
 			return err
@@ -67,8 +67,8 @@ func UpdatePackages(a UpdatePackagesIn) error {
 			if runtime.GOOS == "windows" {
 				nameInArchive = filepath.FromSlash(nameInArchive)
 			}
-			
-			filename := filepath.Join(a.DownloadDir, nameInArchive)
+
+			filename := filepath.Join(DownloadDir, nameInArchive)
 
 			if err = os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
 				return err
