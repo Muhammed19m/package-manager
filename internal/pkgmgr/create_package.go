@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	ErrNameEmpty     = errors.New("имя пустое")
-	ErrVerInvalid    = errors.New("неправильная версия")
-	ErrTargetsEmpty  = errors.New("нет файлов для упаковки")
+	ErrNameEmpty     = errors.New("пустое название пакета")
+	ErrVerInvalid    = errors.New("неправильная версия паета")
+	ErrTargetsEmpty  = errors.New("не указаны файлы для упаковки")
 	ErrCreateArchive = errors.New("не удалось создать архив")
 )
 

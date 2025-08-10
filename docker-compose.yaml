@@ -1,0 +1,11 @@
+services:
+  pkgmgr.sshcontainer:
+    image: linuxserver/openssh-server:version-10.0_p1-r7
+    ports:
+      - "2222:2222"
+    environment:
+      USER_NAME: testuser
+      USER_PASSWORD: testpass
+      PASSWORD_ACCESS: true
+
+    

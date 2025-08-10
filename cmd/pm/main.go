@@ -8,33 +8,55 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Muhammed19m/package-manager/internal/pkgmgr"
 	"github.com/urfave/cli/v3"
+
+	"github.com/Muhammed19m/package-manager/internal/pkgmgr"
 )
+
+var (
+	ErrEmptyPath = errors.New("путь к файлу пустой")
+)
+
+var containerSshConfig = pkgmgr.SshConfig{
+	User:        "testuser",
+	Server:      "localhost",
+	Port:        "2222",
+	Passwd:      "testpass",
+	PackagesDir: "/tmp/pkgs",
+}
 
 func main() {
 	cmd := &cli.Command{
 		Commands: []*cli.Command{
 			{
 				Name:  "create",
-				Usage: "упаковывать файлы в архив, и залить их на сервер по SSH",
-
+				Usage: "упаковывать файлы в архив и залить их на сервер по SSH",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
+					// Получить путь к файлу
 					path := cmd.Args().Get(0)
-					fmt.Println("completed task: ", cmd.Args().First())
-
-					contentToConfig, err := contentParserByFilePath(path)
+					if path == "" {
+						return ErrEmptyPath
+					}
+					//  Подобрать нужную функцию преобразования содержимого файла в PackageInfo
+					contentToPackageInfo, err := packageInfoParserByFilePath(path)
+					if err != nil {
+						return err
+					}
+					// Прочитать файл
+					content, err := os.ReadFile(path)
 					if err != nil {
 						return err
 					}
 
-					contentFile, err := os.ReadFile(path)
+					// Преобразовать содержимое файла PackageInfo
+					packageInfo, err := contentToPackageInfo(string(content))
 					if err != nil {
 						return err
 					}
-					packageInfo, err := contentToConfig(string(contentFile))
 
-					pkgmgr.CreatePackage(shhConfig, packageInfo)
+					if err := pkgmgr.CreatePackage(containerSshConfig, packageInfo); err != nil {
+						return fmt.Errorf("создание пакета: %w", err)
+					}
 
 					return nil
 				},
@@ -43,27 +65,7 @@ func main() {
 				Name:  "update",
 				Usage: "скачать файлы архивов по SSH и распаковать",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					// pm update ./packages.json
-					path := cmd.Args().Get(0)
-					fmt.Println("completed task: ", cmd.Args().First())
-
-					contentToConfig, err := contentParserByFilePath(path)
-					if err != nil {
-						return err
-					}
-
-					contentFile, err := os.ReadFile(path)
-					if err != nil {
-						return err
-					}
-					packageInfo, err := contentToConfig(string(contentFile))
-
-					packages := []pkgmgr.PackageRequest{}
-
-					pkgmgr.CreatePackage(shhConfig, packageInfo)
-
-					// cfg := ...
-					pkgmgr.UpdatePackages(shhConfig, downloadDir, packages)
+					// pkgmgr.UpdatePackages(shhConfig, downloadDir, packages)
 					return nil
 				},
 			},
@@ -71,8 +73,8 @@ func main() {
 		Name:  "pm",
 		Usage: "пакетный менеджер для ....",
 		Flags: []cli.Flag{},
-		Action: func(context.Context, *cli.Command) error {
-
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			cli.ShowAppHelpAndExit(cmd, 2)
 			return nil
 		},
 	}
@@ -85,7 +87,7 @@ func main() {
 var ErrUnknownFiletype = errors.New("неизвестный тип файла")
 
 // возвращает тип файла
-func contentParserByFilePath(path string) (func(y string) (pkgmgr.PackageInfo, error), error) {
+func packageInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackageInfo, error), error) {
 	if strings.HasSuffix(path, ".json") {
 		return pkgmgr.JsonToPackageInfo, nil
 	}

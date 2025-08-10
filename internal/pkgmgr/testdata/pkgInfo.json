@@ -1,0 +1,10 @@
+{
+    "name": "тестовыйпакет",
+    "ver": "1.0.0",
+    "targets": [
+        {
+            "Path": "./testdata/*.png",
+            "Exclude": "./testdata/*_exluded.png"
+        }
+    ]
+}
