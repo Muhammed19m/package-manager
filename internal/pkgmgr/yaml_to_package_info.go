@@ -4,7 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func yamlToPackageInfo(y string) (PackageInfo, error) {
+func YamlToPackageInfo(y string) (PackageInfo, error) {
 	var yamlPkgInfo yamlPkgInfo
 
 	if err := yaml.Unmarshal([]byte(y), &yamlPkgInfo); err != nil {

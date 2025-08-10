@@ -9,7 +9,7 @@ import (
 func TestJsonToPackageInfo(t *testing.T) {
 	t.Run("не валдиный json", func(t *testing.T) {
 		json := "hi: 1"
-		pkgInfo, err := jsonToPackageInfo(json)
+		pkgInfo, err := JsonToPackageInfo(json)
 		assert.Error(t, err)
 		assert.Zero(t, pkgInfo)
 	})
@@ -20,7 +20,7 @@ func TestJsonToPackageInfo(t *testing.T) {
 		"ver": "1.0",
 		"targets": []
 		}`
-		pkgInfo, err := jsonToPackageInfo(json)
+		pkgInfo, err := JsonToPackageInfo(json)
 		assert.NoError(t, err)
 		assert.NotZero(t, pkgInfo)
 	})
@@ -38,12 +38,12 @@ func TestJsonToPackageInfo(t *testing.T) {
 		"targets": [],
 		"test": 1
 		}`
-		pkgInfo, err := jsonToPackageInfo(json)
+		pkgInfo, err := JsonToPackageInfo(json)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedPkgInfo, pkgInfo)
 	})
 	t.Run("незаданные поля равны нулю", func(t *testing.T) {
-		pkgInfo, err := jsonToPackageInfo("{}")
+		pkgInfo, err := JsonToPackageInfo("{}")
 		assert.NoError(t, err)
 		assert.Zero(t, pkgInfo)
 	})

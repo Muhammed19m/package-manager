@@ -9,7 +9,7 @@ import (
 func TestYamlToPackageInfo(t *testing.T) {
 	t.Run("не валдиный yaml", func(t *testing.T) {
 		yaml := `{"hi": 1}`
-		pkgInfo, err := yamlToPackageInfo(yaml)
+		pkgInfo, err := YamlToPackageInfo(yaml)
 		assert.NoError(t, err)
 		assert.Zero(t, pkgInfo)
 	})
@@ -18,7 +18,7 @@ func TestYamlToPackageInfo(t *testing.T) {
 		yaml := `name: package
 ver: "1.0"
 targets: []`
-		pkgInfo, err := yamlToPackageInfo(yaml)
+		pkgInfo, err := YamlToPackageInfo(yaml)
 		assert.NoError(t, err)
 		assert.NotZero(t, pkgInfo)
 	})
@@ -34,12 +34,12 @@ targets: []`
 ver: "1.0"
 targets: []
 test: 1`
-		pkgInfo, err := yamlToPackageInfo(yaml)
+		pkgInfo, err := YamlToPackageInfo(yaml)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedPkgInfo, pkgInfo)
 	})
 	t.Run("незаданные поля равны нулю", func(t *testing.T) {
-		pkgInfo, err := yamlToPackageInfo("some: q")
+		pkgInfo, err := YamlToPackageInfo("some: q")
 		assert.NoError(t, err)
 		assert.Zero(t, pkgInfo)
 	})
