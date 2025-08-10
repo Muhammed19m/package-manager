@@ -3,8 +3,8 @@
     "ver": "1.0.0",
     "targets": [
         {
-            "Path": "./testdata/*.png",
-            "Exclude": "./testdata/*_exluded.png"
+            "Path": ".\\internal\\pkgmgr\\testdata\\*.png",
+            "Exclude": ".\\internal\\pkgmgr\\testdata\\*_exluded.png"
         }
     ]
 }
