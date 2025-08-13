@@ -26,7 +26,7 @@ func TestJsonToPackagesInfo(t *testing.T) {
 	})
 	t.Run("лишние поля будут отброшены", func(t *testing.T) {
 		expectedPkgsInfo := PackagesInfo{
-			Packages: []PackageDependency{
+			Packages: []PackageRequest{
 				{
 					Name: "packet-1",
 					Ver:  ">=1.10",

@@ -15,5 +15,5 @@ func JsonToPackagesInfo(j string) (PackagesInfo, error) {
 }
 
 type jsonPkgsInfo struct {
-	Packages []PackageDependency `json:"packages"`
+	Packages []PackageRequest `json:"packages"`
 }

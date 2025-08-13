@@ -10,9 +10,9 @@ type PackageInfo struct {
 	Packages []PackageDependency
 }
 
-// PackagesInfo представляет собой мета информацию о списке пакет для скачивания с сервера и распаковки  
+// PackagesInfo представляет собой мета информацию о списке пакет для скачивания с сервера и распаковки
 type PackagesInfo struct {
-	Packages []PackageDependency
+	Packages []PackageRequest
 }
 
 // Target это шаблон файлов для создания пакетов
@@ -28,7 +28,6 @@ type PackageDependency struct {
 }
 
 //  Загрузка архивов
-
 
 // PackageRequest пакет
 type PackageRequest struct {

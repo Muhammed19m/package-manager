@@ -66,6 +66,32 @@ func main() {
 				Usage: "скачать файлы архивов по SSH и распаковать",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					// pkgmgr.UpdatePackages(shhConfig, downloadDir, packages)
+					// Получить путь к файлу
+					path := cmd.Args().Get(0)
+					if path == "" {
+						return ErrEmptyPath
+					}
+					//  Подобрать нужную функцию преобразования содержимого файла в PackageInfo
+					contentToPackageInfo, err := packagesInfoParserByFilePath(path)
+					if err != nil {
+						return err
+					}
+					// Прочитать файл
+					content, err := os.ReadFile(path)
+					if err != nil {
+						return err
+					}
+
+					// Преобразовать содержимое файла PackageInfo
+					packagesInfo, err := contentToPackageInfo(string(content))
+					if err != nil {
+						return err
+					}
+
+					if err := pkgmgr.UpdatePackages(containerSshConfig, ".", packagesInfo.Packages); err != nil {
+						return fmt.Errorf("создание пакета: %w", err)
+					}
+
 					return nil
 				},
 			},
@@ -93,6 +119,18 @@ func packageInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackageInf
 	}
 	if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") {
 		return pkgmgr.YamlToPackageInfo, nil
+	}
+
+	return nil, ErrUnknownFiletype
+}
+
+// возвращает функцию парсера
+func packagesInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackagesInfo, error), error) {
+	if strings.HasSuffix(path, ".json") {
+		return pkgmgr.JsonToPackagesInfo, nil
+	}
+	if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") {
+		// return pkgmgr.YamlToPackagesInfo, nil
 	}
 
 	return nil, ErrUnknownFiletype
