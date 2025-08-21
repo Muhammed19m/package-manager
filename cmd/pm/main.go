@@ -89,7 +89,7 @@ func main() {
 					}
 
 					if err := pkgmgr.UpdatePackages(containerSshConfig, ".", packagesInfo.Packages); err != nil {
-						return fmt.Errorf("создание пакета: %w", err)
+						return fmt.Errorf("загрузка пакета: %w", err)
 					}
 
 					return nil
@@ -98,7 +98,6 @@ func main() {
 		},
 		Name:  "pm",
 		Usage: "пакетный менеджер для ....",
-		Flags: []cli.Flag{},
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			cli.ShowAppHelpAndExit(cmd, 2)
 			return nil
