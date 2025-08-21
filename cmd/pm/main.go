@@ -122,7 +122,7 @@ func main() {
 
 var ErrUnknownFiletype = errors.New("неизвестный тип файла")
 
-// возвращает тип файла
+// возвращает функцию парсера для парсинга файла упаковки файла
 func packageInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackageInfo, error), error) {
 	if strings.HasSuffix(path, ".json") {
 		return pkgmgr.JsonToPackageInfo, nil
@@ -134,13 +134,13 @@ func packageInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackageInf
 	return nil, ErrUnknownFiletype
 }
 
-// возвращает функцию парсера
+// возвращает функцию парсера для парсинга файла распаковки файлов
 func packagesInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackagesInfo, error), error) {
 	if strings.HasSuffix(path, ".json") {
 		return pkgmgr.JsonToPackagesInfo, nil
 	}
 	if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") {
-		// return pkgmgr.YamlToPackagesInfo, nil
+		return pkgmgr.YamlToPackagesInfo, nil
 	}
 
 	return nil, ErrUnknownFiletype
