@@ -62,7 +62,16 @@ func main() {
 				},
 			},
 			{
-				Name:  "update",
+				Name: "update",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:      "DownloadDir",
+						Value:     ".",
+						Usage:     "Директория куда будет скачиваться файлы",
+						Aliases:   []string{"dir"},
+						TakesFile: true,
+					},
+				},
 				Usage: "скачать файлы архивов по SSH и распаковать",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					// pkgmgr.UpdatePackages(shhConfig, downloadDir, packages)
@@ -87,8 +96,10 @@ func main() {
 					if err != nil {
 						return err
 					}
+					// Достать значение из флага DownloadDir(dir)
+					DownloadDir := cmd.String("DownloadDir")
 
-					if err := pkgmgr.UpdatePackages(containerSshConfig, ".", packagesInfo.Packages); err != nil {
+					if err := pkgmgr.UpdatePackages(containerSshConfig, DownloadDir, packagesInfo.Packages); err != nil {
 						return fmt.Errorf("загрузка пакета: %w", err)
 					}
 
