@@ -17,14 +17,6 @@ var (
 	ErrEmptyPath = errors.New("путь к файлу пустой")
 )
 
-var containerSshConfig = pkgmgr.SshConfig{
-	User:        "testuser",
-	Server:      "localhost",
-	Port:        "2222",
-	Passwd:      "testpass",
-	PackagesDir: "/tmp/pkgs",
-}
-
 func main() {
 	cmd := &cli.Command{
 		Commands: []*cli.Command{
@@ -53,8 +45,9 @@ func main() {
 					if err != nil {
 						return err
 					}
+					sshConfig := ComplateSshConfigFromCommand(cmd)
 
-					if err := pkgmgr.CreatePackage(containerSshConfig, packageInfo); err != nil {
+					if err := pkgmgr.CreatePackage(sshConfig, packageInfo); err != nil {
 						return fmt.Errorf("создание пакета: %w", err)
 					}
 
@@ -99,12 +92,52 @@ func main() {
 					// Достать значение из флага DownloadDir(dir)
 					DownloadDir := cmd.String("DownloadDir")
 
-					if err := pkgmgr.UpdatePackages(containerSshConfig, DownloadDir, packagesInfo.Packages); err != nil {
+					sshConfig := ComplateSshConfigFromCommand(cmd)
+
+					if err := pkgmgr.UpdatePackages(sshConfig, DownloadDir, packagesInfo.Packages); err != nil {
 						return fmt.Errorf("загрузка пакета: %w", err)
 					}
 
 					return nil
 				},
+			},
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "User",
+				Usage:    "пользователь подключения к ssh",
+				Required: true,
+				Sources:  cli.EnvVars("USER_SSH_PM"),
+			},
+			&cli.StringFlag{
+				Name:     "Hostname",
+				Usage:    "сервер подключения к ssh",
+				Required: true,
+				Value:    "localhost",
+				Sources:  cli.EnvVars("SERVER_SSH_PM"),
+			},
+			&cli.StringFlag{
+				Name:    "Port",
+				Usage:   "порт подключения к ssh",
+				Value:   "22",
+				Sources: cli.EnvVars("PORT_SSH_PM"),
+			},
+			&cli.StringFlag{
+				Name:    "Passwrd",
+				Usage:   "пароль подключения к ssh",
+				Sources: cli.EnvVars("PASSWORD_SSH_PM"),
+			},
+			&cli.StringFlag{
+				Name:    "PackagesDir",
+				Usage:   "директория для работы спакетами на сервере",
+				Value:   "/tmp/pkgs",
+				Sources: cli.EnvVars("PACKAGES_DIR_SSH_PM"),
+			},
+			&cli.StringFlag{
+				Name:    "IdentityFile",
+				Usage:   "идентификационный файл",
+				Value:   "",
+				Sources: cli.EnvVars("IDENTITY_FILE_SSH_PM"),
 			},
 		},
 		Name:  "pm",
@@ -144,4 +177,17 @@ func packagesInfoParserByFilePath(path string) (func(y string) (pkgmgr.PackagesI
 	}
 
 	return nil, ErrUnknownFiletype
+}
+
+// возвращает SshConfig собирая из флагов или EnvVars
+func ComplateSshConfigFromCommand(cmd *cli.Command) pkgmgr.SshConfig {
+	sshConfig := pkgmgr.SshConfig{
+		Server:       cmd.String("Hostname"),
+		Port:         cmd.String("Port"),
+		User:         cmd.String("User"),
+		PackagesDir:  cmd.String("PackagesDir"),
+		Passwd:       cmd.String("Passwrd"),
+		IdentityFile: cmd.String("IdentityFile"),
+	}
+	return sshConfig
 }
